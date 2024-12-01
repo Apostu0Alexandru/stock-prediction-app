@@ -5,12 +5,20 @@ export async function GET() {
 
   const readable = new ReadableStream({
     async start(controller) {
-      while (true) {
+      const startTime = Date.now();
+      let isStreaming = true;
+      while (isStreaming) {
         const price = 100 + Math.random() * 10
         const data = JSON.stringify({ price, timestamp: Date.now() })
         controller.enqueue(encoder.encode(`data: ${data}\n\n`))
         await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // Stop streaming after 1 minute
+        if (Date.now() - startTime > 60000) {
+          isStreaming = false;
+        }
       }
+      controller.close();
     },
   })
 
